@@ -36,10 +36,17 @@ st.markdown("""
         font-family: 'Inter', sans-serif !important;
     }
 
-    /* Hide Streamlit branding */
+    /* Hide Streamlit branding but keep sidebar toggle */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
-    header[data-testid="stHeader"] {display: none;}
+    header[data-testid="stHeader"] {
+        background: transparent !important;
+        border-bottom: none !important;
+        height: 2.5rem !important;
+    }
+    /* Hide the page-title / decoration inside the header, keep the collapse btn */
+    header[data-testid="stHeader"] [data-testid="stDecoration"],
+    header[data-testid="stHeader"] [data-testid="stToolbar"] {display: none;}
 
     /* Tighter padding */
     .block-container {

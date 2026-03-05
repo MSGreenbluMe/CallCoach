@@ -20,7 +20,7 @@ def render():
 
     scenario = get_scenario_by_id(scenario_id)
     if not scenario:
-        st.error("Scenár nenájdený.")
+        st.error("Scenario not found.")
         return
 
     checkpoints = get_checkpoints_for_scenario(scenario_id)
@@ -35,16 +35,38 @@ def render():
     col_main, col_side = st.columns([3, 1])
 
     with col_main:
-        # Call header
+        # Call header with timer
         st.markdown(
             f"""
             <div style="text-align: center; padding-top: 1rem;">
                 <h2 style="font-weight: 700; margin-bottom: 0.25rem;">{scenario['name']}</h2>
-                <div style="display: flex; align-items: center; justify-content: center; gap: 6px;">
-                    <div style="width: 8px; height: 8px; border-radius: 50%; background: #ef4444;"></div>
-                    <span style="color: #94a3b8; font-size: 0.85rem; font-weight: 500;">Call in Progress...</span>
+                <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <div style="width: 8px; height: 8px; border-radius: 50%; background: #ef4444;
+                                   animation: blink 1.5s infinite;"></div>
+                        <span style="color: #94a3b8; font-size: 0.85rem; font-weight: 500;">Call in Progress</span>
+                    </div>
+                    <span id="call-timer" style="font-family: monospace; font-weight: 700; font-size: 1.1rem;
+                                                 color: white; background: #1e3340; padding: 4px 12px;
+                                                 border-radius: 8px;">00:00</span>
                 </div>
             </div>
+            <style>
+                @keyframes blink {{ 0%,100% {{ opacity: 1; }} 50% {{ opacity: 0.3; }} }}
+            </style>
+            <script>
+                (function() {{
+                    var start = Date.now();
+                    var el = document.getElementById('call-timer');
+                    if (el) {{
+                        setInterval(function() {{
+                            var s = Math.floor((Date.now() - start) / 1000);
+                            var m = Math.floor(s / 60);
+                            el.textContent = String(m).padStart(2,'0') + ':' + String(s % 60).padStart(2,'0');
+                        }}, 1000);
+                    }}
+                }})();
+            </script>
             """,
             unsafe_allow_html=True,
         )
@@ -108,7 +130,7 @@ def _render_elevenlabs_call(scenario: dict, checkpoints: list[dict]):
             unsafe_allow_html=True,
         )
     else:
-        st.warning("ElevenLabs agent nie je nakonfigurovaný. Použite mock režim.")
+        st.warning("ElevenLabs agent not configured. Using mock mode.")
         _render_mock_call(scenario, checkpoints)
 
 
@@ -157,6 +179,7 @@ def _render_mock_call(scenario: dict, checkpoints: list[dict]):
     st.markdown("")
 
     # End call button — centered, red
+    st.markdown('<style>div[data-testid="stButton"] button[kind="primary"] { background-color: #ef4444 !important; border-color: #ef4444 !important; } div[data-testid="stButton"] button[kind="primary"]:hover { background-color: #dc2626 !important; border-color: #dc2626 !important; }</style>', unsafe_allow_html=True)
     col_a, col_b, col_c = st.columns([1, 1, 1])
     with col_b:
         if st.button("End Call", use_container_width=True, type="primary"):

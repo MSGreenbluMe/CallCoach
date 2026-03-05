@@ -24,7 +24,7 @@ def render():
         )
 
         # Role toggle
-        role_tab = st.radio("Rola", ["Agent", "Manager"], horizontal=True, label_visibility="collapsed")
+        role_tab = st.radio("Role", ["Agent", "Manager"], horizontal=True, label_visibility="collapsed")
 
         with st.form("login_form"):
             # Get existing users for quick login
@@ -39,19 +39,19 @@ def render():
             if users:
                 user_options = {u["name"]: dict(u) for u in users}
                 selected = st.selectbox(
-                    "Vybrať používateľa",
+                    "Select User",
                     options=list(user_options.keys()),
                     index=0,
                 )
             else:
                 selected = None
-                st.info("Žiadni používatelia pre túto rolu.")
+                st.info("No users found for this role.")
 
             st.markdown("---")
-            st.caption("Alebo sa prihláste manuálne:")
+            st.caption("Or sign in manually:")
 
-            name = st.text_input("Meno", placeholder="Vaše meno")
-            team_code = st.text_input("Team kód", placeholder="napr. Demo")
+            name = st.text_input("Name", placeholder="Your name")
+            team_code = st.text_input("Team Code", placeholder="e.g. Demo")
 
             submitted = st.form_submit_button("Sign In", use_container_width=True, type="primary")
 
@@ -63,7 +63,7 @@ def render():
                     user_id = _get_or_create_user(name, team_code or "Default", filter_role)
                     _login_user(user_id)
                 else:
-                    st.error("Vyberte používateľa alebo zadajte meno.")
+                    st.error("Please select a user or enter your name.")
 
 
 def _login_user(user_id: int):

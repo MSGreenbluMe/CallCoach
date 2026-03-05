@@ -7,7 +7,7 @@ from config import LEVEL_THRESHOLDS
 def get_level_for_xp(xp: int) -> tuple[int, str]:
     """Return (level_number, level_name) for given XP."""
     current_level = 1
-    current_name = "Nováčik"
+    current_name = "Rookie"
     for level, (name, threshold) in sorted(LEVEL_THRESHOLDS.items()):
         if xp >= threshold:
             current_level = level

@@ -15,7 +15,7 @@ def render():
 
     scenario = get_scenario_by_id(scenario_id)
     if not scenario:
-        st.error("Scenár nenájdený.")
+        st.error("Scenario not found.")
         return
 
     checkpoints = get_checkpoints_for_scenario(scenario_id)

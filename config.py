@@ -46,15 +46,15 @@ XP_DAILY_STREAK = 20
 
 # Level thresholds
 LEVEL_THRESHOLDS = {
-    1: ("Nováčik", 0),
-    2: ("Kadet", 200),
+    1: ("Rookie", 0),
+    2: ("Cadet", 200),
     3: ("Junior Agent", 500),
     4: ("Agent", 1000),
     5: ("Senior Agent", 2000),
     6: ("Expert", 4000),
     7: ("Master", 7000),
     8: ("Guru", 11000),
-    9: ("Legenda", 16000),
+    9: ("Legend", 16000),
     10: ("Call Center Jedi", 25000),
 }
 
@@ -62,11 +62,11 @@ LEVEL_THRESHOLDS = {
 CATEGORIES = ["SALES", "RETENTION", "TECH_SUPPORT", "COMPLAINTS", "BILLING", "ONBOARDING"]
 
 CATEGORY_LABELS = {
-    "SALES": "Predaj",
-    "RETENTION": "Retencia",
-    "TECH_SUPPORT": "Tech. podpora",
-    "COMPLAINTS": "Reklamácie",
-    "BILLING": "Fakturácia",
+    "SALES": "Sales",
+    "RETENTION": "Retention",
+    "TECH_SUPPORT": "Tech Support",
+    "COMPLAINTS": "Complaints",
+    "BILLING": "Billing",
     "ONBOARDING": "Onboarding",
 }
 
@@ -80,17 +80,17 @@ CATEGORY_COLORS = {
 }
 
 MOOD_LABELS = {
-    "CALM": "Pokojný",
-    "FRUSTRATED": "Frustrovaný",
-    "ANGRY": "Nahnevaný",
-    "CONFUSED": "Zmätený",
-    "IMPATIENT": "Netrpezlivý",
-    "FRIENDLY": "Priateľský",
+    "CALM": "Calm",
+    "FRUSTRATED": "Frustrated",
+    "ANGRY": "Angry",
+    "CONFUSED": "Confused",
+    "IMPATIENT": "Impatient",
+    "FRIENDLY": "Friendly",
 }
 
 LANGUAGES = {
-    "cs": "Čeština",
-    "sk": "Slovenčina",
-    "hu": "Maďarčina",
-    "en": "Angličtina",
+    "cs": "Czech",
+    "sk": "Slovak",
+    "hu": "Hungarian",
+    "en": "English",
 }

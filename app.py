@@ -13,9 +13,9 @@ from database.db import init_db
 from database.seed import seed_all
 
 # Page imports
-from pages import login, agent_home, scenario_browser, pre_call_briefing
-from pages import active_call, evaluating, scorecard
-from pages import manager_dashboard, agent_detail, achievements
+from views import login, agent_home, scenario_browser, pre_call_briefing
+from views import active_call, evaluating, scorecard
+from views import manager_dashboard, agent_detail, achievements
 
 
 # ── Page Config ──────────────────────────────────────────────────────────────

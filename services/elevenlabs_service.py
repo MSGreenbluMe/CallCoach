@@ -1,22 +1,20 @@
 """ElevenLabs Conversational AI API wrapper."""
 
 import json
+import requests as _requests
 from config import ELEVENLABS_API_KEY, ELEVENLABS_DEFAULT_VOICE_ID
 from utils.prompt_templates import build_customer_persona_prompt
 
+_BASE_URL = "https://api.elevenlabs.io/v1"
+
 
 def create_agent_for_scenario(scenario: dict) -> str | None:
-    """Create an ElevenLabs Conversational AI agent for a scenario.
+    """Create an ElevenLabs Conversational AI agent via REST API.
 
-    Returns agent_id or None if API key not configured.
-    Raises RuntimeError with details on failure.
+    Returns agent_id. Raises RuntimeError with details on failure.
     """
     if not ELEVENLABS_API_KEY:
         raise RuntimeError("ELEVENLABS_API_KEY is not set.")
-
-    from elevenlabs import ElevenLabs
-
-    client = ElevenLabs(api_key=ELEVENLABS_API_KEY)
 
     system_prompt = scenario.get("system_prompt") or build_customer_persona_prompt(scenario)
     voice_id = scenario.get("voice_id") or ELEVENLABS_DEFAULT_VOICE_ID or "JBFqnCBsd6RMkjVDRZzb"
@@ -25,35 +23,40 @@ def create_agent_for_scenario(scenario: dict) -> str | None:
     temperature = scenario.get("temperature", 0.7)
     agent_name = f"CallCoach - {scenario.get('name', 'Scenario')}"
 
-    try:
-        # ElevenLabs SDK >= 1.10 — Conversational AI agent creation
-        agent = client.conversational_ai.create_agent(
-            name=agent_name,
-            conversation_config={
-                "agent": {
-                    "prompt": {
-                        "prompt": system_prompt,
-                        "llm": "gemini-2.0-flash-001",
-                        "temperature": temperature,
-                    },
-                    "first_message": first_message,
-                    "language": language,
+    payload = {
+        "name": agent_name,
+        "conversation_config": {
+            "agent": {
+                "prompt": {
+                    "prompt": system_prompt,
+                    "llm": "gemini-2.0-flash-001",
+                    "temperature": temperature,
                 },
-                "tts": {
-                    "voice_id": voice_id,
-                },
+                "first_message": first_message,
+                "language": language,
             },
-        )
-        return agent.agent_id
+            "tts": {
+                "voice_id": voice_id,
+            },
+        },
+    }
 
-    except Exception as e:
-        error_msg = str(e)
-        # Try to extract detail from API error response
-        if hasattr(e, 'body'):
-            error_msg = f"{error_msg} | body: {e.body}"
-        if hasattr(e, 'status_code'):
-            error_msg = f"HTTP {e.status_code}: {error_msg}"
-        raise RuntimeError(f"ElevenLabs API error: {error_msg}") from e
+    resp = _requests.post(
+        f"{_BASE_URL}/convai/agents/create",
+        headers={"xi-api-key": ELEVENLABS_API_KEY, "Content-Type": "application/json"},
+        json=payload,
+        timeout=30,
+    )
+
+    if resp.status_code not in (200, 201):
+        detail = resp.text[:500]
+        raise RuntimeError(f"HTTP {resp.status_code}: {detail}")
+
+    data = resp.json()
+    agent_id = data.get("agent_id")
+    if not agent_id:
+        raise RuntimeError(f"No agent_id in response: {json.dumps(data)[:300]}")
+    return agent_id
 
 
 def get_signed_url(agent_id: str) -> str | None:

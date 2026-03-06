@@ -23,7 +23,7 @@ st.set_page_config(
     page_title="CallCoach",
     page_icon="🎯",
     layout="wide",
-    initial_sidebar_state="auto",
+    initial_sidebar_state="expanded",
 )
 
 # ── Global CSS ───────────────────────────────────────────────────────────────
@@ -36,17 +36,11 @@ st.markdown("""
         font-family: 'Inter', sans-serif !important;
     }
 
-    /* Hide Streamlit branding but keep sidebar toggle */
+    /* Hide Streamlit branding */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
-    header[data-testid="stHeader"] {
-        background: transparent !important;
-        border-bottom: none !important;
-        height: 2.5rem !important;
-    }
-    /* Hide the page-title / decoration inside the header, keep the collapse btn */
-    header[data-testid="stHeader"] [data-testid="stDecoration"],
-    header[data-testid="stHeader"] [data-testid="stToolbar"] {display: none;}
+    [data-testid="stDecoration"] {display: none;}
+    [data-testid="stToolbar"] {display: none;}
 
     /* Tighter padding */
     .block-container {

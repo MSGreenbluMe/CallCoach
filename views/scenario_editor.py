@@ -84,16 +84,16 @@ def render():
     st.markdown("")
 
     # Navigation buttons
-    col_back, col_spacer, col_next = st.columns([1, 2, 1])
+    col_cancel, col_back, col_spacer, col_next = st.columns([1, 1, 1, 1])
+    with col_cancel:
+        if st.button("Cancel", use_container_width=True):
+            _cleanup_editor()
+            st.session_state["page"] = "scenario_management"
+            st.rerun()
     with col_back:
         if step > 0:
             if st.button("Back", use_container_width=True):
                 st.session_state["editor_step"] = step - 1
-                st.rerun()
-        else:
-            if st.button("Cancel", use_container_width=True):
-                _cleanup_editor()
-                st.session_state["page"] = "scenario_management"
                 st.rerun()
     with col_next:
         if step < len(_STEPS) - 1:
@@ -103,22 +103,19 @@ def render():
 
 
 def _render_step_nav(current_step: int):
-    """Render the step navigation bar."""
-    html = '<div style="display: flex; gap: 4px; margin-bottom: 0.5rem;">'
+    """Render clickable step navigation bar."""
+    cols = st.columns(len(_STEPS))
     for i, (name, icon) in enumerate(_STEPS):
-        if i < current_step:
-            bg = "#10b981"; color = "white"; border = "#10b981"
-        elif i == current_step:
-            bg = "#13a4ec"; color = "white"; border = "#13a4ec"
-        else:
-            bg = "#1e3340"; color = "#64748b"; border = "#334155"
-        html += f'''<div style="flex: 1; text-align: center; padding: 8px 4px; border-radius: 8px;
-                              background: {bg}; border: 1px solid {border}; cursor: default;">
-            <span class="mi" style="font-size: 16px; color: {color};">{icon}</span>
-            <div style="font-size: 0.7rem; color: {color}; margin-top: 2px; font-weight: 500;">{name}</div>
-        </div>'''
-    html += '</div>'
-    st.markdown(html, unsafe_allow_html=True)
+        with cols[i]:
+            if i < current_step:
+                style = "background:#10b981;color:white;border-color:#10b981;"
+            elif i == current_step:
+                style = "background:#13a4ec;color:white;border-color:#13a4ec;"
+            else:
+                style = "background:#1e3340;color:#64748b;border-color:#334155;"
+            if st.button(name, key=f"step_nav_{i}", use_container_width=True):
+                st.session_state["editor_step"] = i
+                st.rerun()
 
 
 def _step_basic_info(data: dict):

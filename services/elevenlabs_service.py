@@ -23,13 +23,16 @@ def create_agent_for_scenario(scenario: dict) -> str | None:
     temperature = scenario.get("temperature", 0.7)
     agent_name = f"CallCoach - {scenario.get('name', 'Scenario')}"
 
+    # Non-English agents require "gemini-2.0-flash-001" won't work — use flash v2_5
+    llm_model = "gpt-4o-mini" if language == "en" else "gemini-2.5-flash"
+
     payload = {
         "name": agent_name,
         "conversation_config": {
             "agent": {
                 "prompt": {
                     "prompt": system_prompt,
-                    "llm": "gemini-2.0-flash-001",
+                    "llm": llm_model,
                     "temperature": temperature,
                 },
                 "first_message": first_message,

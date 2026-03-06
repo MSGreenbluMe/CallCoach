@@ -16,6 +16,7 @@ from database.seed import seed_all
 from views import login, agent_home, scenario_browser, pre_call_briefing
 from views import active_call, evaluating, scorecard
 from views import manager_dashboard, agent_detail, achievements
+from views import scenario_management, scenario_editor
 
 
 # ── Page Config ──────────────────────────────────────────────────────────────
@@ -133,7 +134,8 @@ def render_sidebar():
             _nav_btn("emoji_events", "Achievements", "achievements", current)
         elif role in ("manager", "admin"):
             _nav_btn("dashboard", "Dashboard", "manager_dashboard", current)
-            _nav_btn("headset_mic", "Scenarios", "scenario_browser", current)
+            _nav_btn("settings", "Manage Scenarios", "scenario_management", current)
+            _nav_btn("headset_mic", "Browse Scenarios", "scenario_browser", current)
 
         st.markdown("---")
 
@@ -163,6 +165,8 @@ PAGE_MAP = {
     "manager_dashboard": manager_dashboard.render,
     "agent_detail": agent_detail.render,
     "achievements": achievements.render,
+    "scenario_management": scenario_management.render,
+    "scenario_editor": scenario_editor.render,
 }
 
 

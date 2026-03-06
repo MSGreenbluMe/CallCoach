@@ -249,15 +249,18 @@ def _step_elevenlabs(data: dict):
         auto_disabled = not has_key or not data.get("persona_name")
         if st.button("Auto-create Agent", use_container_width=True, type="primary", disabled=auto_disabled):
             with st.spinner("Creating ElevenLabs agent..."):
-                from services.elevenlabs_service import create_agent_for_scenario
-                agent_id = create_agent_for_scenario(data)
-                if agent_id:
-                    data["elevenlabs_agent_id"] = agent_id
-                    st.session_state["editor_data"] = data
-                    st.success(f"Agent created: {agent_id}")
-                    st.rerun()
-                else:
-                    st.error("Failed to create agent. Check API key and scenario data.")
+                try:
+                    from services.elevenlabs_service import create_agent_for_scenario
+                    agent_id = create_agent_for_scenario(data)
+                    if agent_id:
+                        data["elevenlabs_agent_id"] = agent_id
+                        st.session_state["editor_data"] = data
+                        st.success(f"Agent created: {agent_id}")
+                        st.rerun()
+                    else:
+                        st.error("Agent creation returned empty ID.")
+                except Exception as e:
+                    st.error(f"Failed: {e}")
 
     if auto_disabled and has_key and not data.get("persona_name"):
         st.caption("Fill in Customer Persona (step 2) first to enable auto-create.")

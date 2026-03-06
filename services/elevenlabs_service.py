@@ -9,41 +9,51 @@ def create_agent_for_scenario(scenario: dict) -> str | None:
     """Create an ElevenLabs Conversational AI agent for a scenario.
 
     Returns agent_id or None if API key not configured.
+    Raises RuntimeError with details on failure.
     """
     if not ELEVENLABS_API_KEY:
-        return None
+        raise RuntimeError("ELEVENLABS_API_KEY is not set.")
+
+    from elevenlabs import ElevenLabs
+
+    client = ElevenLabs(api_key=ELEVENLABS_API_KEY)
+
+    system_prompt = scenario.get("system_prompt") or build_customer_persona_prompt(scenario)
+    voice_id = scenario.get("voice_id") or ELEVENLABS_DEFAULT_VOICE_ID or "JBFqnCBsd6RMkjVDRZzb"
+    first_message = scenario.get("first_message") or "Dobrý deň."
+    language = scenario.get("language", "cs")
+    temperature = scenario.get("temperature", 0.7)
+    agent_name = f"CallCoach - {scenario.get('name', 'Scenario')}"
 
     try:
-        from elevenlabs import ElevenLabs
-
-        client = ElevenLabs(api_key=ELEVENLABS_API_KEY)
-
-        system_prompt = build_customer_persona_prompt(scenario)
-        voice_id = scenario.get("voice_id") or ELEVENLABS_DEFAULT_VOICE_ID
-
+        # ElevenLabs SDK >= 1.10 — Conversational AI agent creation
         agent = client.conversational_ai.create_agent(
-            name=f"CallCoach - {scenario['name']}",
+            name=agent_name,
             conversation_config={
                 "agent": {
                     "prompt": {
                         "prompt": system_prompt,
                         "llm": "gemini-2.0-flash-001",
-                        "temperature": scenario.get("temperature", 0.7),
+                        "temperature": temperature,
                     },
-                    "first_message": scenario.get("first_message", "Dobrý deň."),
-                    "language": scenario.get("language", "cs"),
+                    "first_message": first_message,
+                    "language": language,
                 },
                 "tts": {
                     "voice_id": voice_id,
                 },
             },
         )
-
         return agent.agent_id
 
     except Exception as e:
-        print(f"ElevenLabs agent creation error: {e}")
-        return None
+        error_msg = str(e)
+        # Try to extract detail from API error response
+        if hasattr(e, 'body'):
+            error_msg = f"{error_msg} | body: {e.body}"
+        if hasattr(e, 'status_code'):
+            error_msg = f"HTTP {e.status_code}: {error_msg}"
+        raise RuntimeError(f"ElevenLabs API error: {error_msg}") from e
 
 
 def get_signed_url(agent_id: str) -> str | None:

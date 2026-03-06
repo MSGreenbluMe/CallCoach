@@ -224,13 +224,46 @@ def _step_goal_checkpoints(data: dict):
 def _step_elevenlabs(data: dict):
     """Step 4: ElevenLabs voice AI configuration."""
     st.markdown("#### ElevenLabs Configuration")
-    st.caption("Configure the AI customer voice agent. Leave blank if not using ElevenLabs.")
 
-    data["elevenlabs_agent_id"] = st.text_input("ElevenLabs Agent ID",
-                                                 value=data.get("elevenlabs_agent_id", ""),
-                                                 placeholder="Agent ID from ElevenLabs dashboard")
-    data["voice_id"] = st.text_input("Voice ID", value=data.get("voice_id", ""),
-                                      placeholder="Voice ID for the customer")
+    from config import ELEVENLABS_API_KEY
+    has_key = bool(ELEVENLABS_API_KEY)
+
+    if has_key:
+        st.markdown(
+            '<div style="display:flex;align-items:center;gap:6px;margin-bottom:0.5rem;">'
+            '<span class="mi" style="color:#10b981;font-size:16px;">check_circle</span>'
+            '<span style="color:#10b981;font-size:0.85rem;">ElevenLabs API key detected</span></div>',
+            unsafe_allow_html=True,
+        )
+    else:
+        st.warning("No ElevenLabs API key found. Add ELEVENLABS_API_KEY to Streamlit Secrets to enable voice calls.")
+
+    # Agent ID — manual input
+    col_id, col_btn = st.columns([3, 1])
+    with col_id:
+        data["elevenlabs_agent_id"] = st.text_input("ElevenLabs Agent ID",
+                                                     value=data.get("elevenlabs_agent_id", ""),
+                                                     placeholder="Agent ID from ElevenLabs dashboard")
+    with col_btn:
+        st.markdown('<div style="padding-top: 1.55rem;"></div>', unsafe_allow_html=True)
+        auto_disabled = not has_key or not data.get("persona_name")
+        if st.button("Auto-create Agent", use_container_width=True, type="primary", disabled=auto_disabled):
+            with st.spinner("Creating ElevenLabs agent..."):
+                from services.elevenlabs_service import create_agent_for_scenario
+                agent_id = create_agent_for_scenario(data)
+                if agent_id:
+                    data["elevenlabs_agent_id"] = agent_id
+                    st.session_state["editor_data"] = data
+                    st.success(f"Agent created: {agent_id}")
+                    st.rerun()
+                else:
+                    st.error("Failed to create agent. Check API key and scenario data.")
+
+    if auto_disabled and has_key and not data.get("persona_name"):
+        st.caption("Fill in Customer Persona (step 2) first to enable auto-create.")
+
+    data["voice_id"] = st.text_input("Voice ID (optional)", value=data.get("voice_id", ""),
+                                      placeholder="Voice ID for the customer — leave blank for default")
 
     data["first_message"] = st.text_area("Customer's First Message",
                                           value=data.get("first_message", ""),
@@ -239,7 +272,7 @@ def _step_elevenlabs(data: dict):
 
     data["system_prompt"] = st.text_area("System Prompt (Customer AI)",
                                           value=data.get("system_prompt", ""),
-                                          placeholder="Full prompt defining customer behavior...",
+                                          placeholder="Full prompt defining customer behavior — auto-generated if blank",
                                           height=150)
 
     data["temperature"] = st.slider("Temperature (creativity)", 0.0, 1.0,

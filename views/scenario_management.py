@@ -46,19 +46,7 @@ def render():
 
     st.markdown("")
 
-    # Table header
-    st.markdown(
-        """<div style="display: grid; grid-template-columns: 3fr 1.5fr 1fr 1fr 1fr 1.2fr;
-                      padding: 0.6rem 1rem; background: #15242b; border-radius: 8px 8px 0 0;
-                      border: 1px solid #1e3340; font-size: 0.75rem; color: #64748b;
-                      text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">
-            <div>Scenario</div><div>Category</div><div>Difficulty</div>
-            <div>Completions</div><div>Avg Score</div><div>Status</div>
-        </div>""",
-        unsafe_allow_html=True,
-    )
-
-    # Scenario rows
+    # Scenario rows with inline actions
     for s in scenarios:
         cat_label = CATEGORY_LABELS.get(s.get("category", ""), s.get("category", ""))
         cat_color = CATEGORY_COLORS.get(s.get("category", ""), "#64748b")
@@ -73,56 +61,40 @@ def render():
         status_color = "#10b981" if is_active else "#ef4444"
         status_label = "Active" if is_active else "Inactive"
 
-        st.markdown(
-            f"""<div style="display: grid; grid-template-columns: 3fr 1.5fr 1fr 1fr 1fr 1.2fr;
-                          padding: 0.75rem 1rem; border: 1px solid #1e3340; border-top: none;
-                          font-size: 0.85rem; align-items: center;">
-                <div>
-                    <div style="font-weight: 600;">{s['name']}</div>
-                    <div style="color: #64748b; font-size: 0.75rem; margin-top: 2px;
-                               display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;">
-                        {s.get('description', '')[:80]}</div>
-                </div>
-                <div><span style="background: {cat_color}20; color: {cat_color}; padding: 2px 10px;
-                                 border-radius: 12px; font-size: 0.75rem; font-weight: 600;">{cat_label}</span></div>
-                <div style="color: #f59e0b; letter-spacing: -1px;">{stars}</div>
-                <div style="color: #94a3b8;">{completions}</div>
-                <div style="color: {avg_color}; font-weight: 600;">{avg_label}</div>
-                <div><span style="background: {status_bg}; color: {status_color}; padding: 2px 10px;
-                                 border-radius: 12px; font-size: 0.75rem; font-weight: 600;">{status_label}</span></div>
-            </div>""",
-            unsafe_allow_html=True,
-        )
+        # Row: info (HTML) | action buttons (Streamlit)
+        col_info, col_edit, col_toggle = st.columns([5, 0.7, 1])
+        with col_info:
+            st.markdown(
+                f"""<div style="display: grid; grid-template-columns: 2.5fr 1.2fr 0.8fr 0.7fr 0.7fr 0.8fr;
+                              padding: 0.6rem 0; font-size: 0.85rem; align-items: center;">
+                    <div>
+                        <div style="font-weight: 600;">{s['name']}</div>
+                        <div style="color: #64748b; font-size: 0.75rem; margin-top: 2px;
+                                   display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;">
+                            {s.get('description', '')[:80]}</div>
+                    </div>
+                    <div><span style="background: {cat_color}20; color: {cat_color}; padding: 2px 10px;
+                                     border-radius: 12px; font-size: 0.75rem; font-weight: 600;">{cat_label}</span></div>
+                    <div style="color: #f59e0b; letter-spacing: -1px;">{stars}</div>
+                    <div style="color: #94a3b8;">{completions}</div>
+                    <div style="color: {avg_color}; font-weight: 600;">{avg_label}</div>
+                    <div><span style="background: {status_bg}; color: {status_color}; padding: 2px 10px;
+                                     border-radius: 12px; font-size: 0.75rem; font-weight: 600;">{status_label}</span></div>
+                </div>""",
+                unsafe_allow_html=True,
+            )
+        with col_edit:
+            if st.button("Edit", key=f"edit_{s['id']}", use_container_width=True):
+                st.session_state["edit_scenario_id"] = s["id"]
+                st.session_state["page"] = "scenario_editor"
+                st.rerun()
+        with col_toggle:
+            toggle_label = "Deactivate" if is_active else "Activate"
+            if st.button(toggle_label, key=f"toggle_{s['id']}", use_container_width=True):
+                toggle_scenario_active(s["id"])
+                st.rerun()
 
-    st.markdown("")
-
-    # Action buttons row per scenario
-    st.markdown("#### Actions")
-    cols_per_row = 4
-    for i in range(0, len(scenarios), cols_per_row):
-        cols = st.columns(cols_per_row)
-        for j in range(cols_per_row):
-            idx = i + j
-            if idx >= len(scenarios):
-                break
-            s = scenarios[idx]
-            with cols[j]:
-                st.markdown(
-                    f'<div style="font-size: 0.8rem; font-weight: 600; margin-bottom: 4px; '
-                    f'white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{s["name"]}</div>',
-                    unsafe_allow_html=True,
-                )
-                c1, c2 = st.columns(2)
-                with c1:
-                    if st.button("Edit", key=f"edit_{s['id']}", use_container_width=True):
-                        st.session_state["edit_scenario_id"] = s["id"]
-                        st.session_state["page"] = "scenario_editor"
-                        st.rerun()
-                with c2:
-                    toggle_label = "Deactivate" if s.get("is_active") else "Activate"
-                    if st.button(toggle_label, key=f"toggle_{s['id']}", use_container_width=True):
-                        toggle_scenario_active(s["id"])
-                        st.rerun()
+        st.markdown('<hr style="margin: 0; border-color: #1e3340;">', unsafe_allow_html=True)
 
 
 def _stat_mini(col, label: str, value: str, color: str):

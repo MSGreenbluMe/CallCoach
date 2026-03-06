@@ -114,24 +114,50 @@ def render():
 
 def _render_elevenlabs_call(scenario: dict, checkpoints: list[dict]):
     """Render real ElevenLabs voice call interface."""
-    agent_id = scenario.get("elevenlabs_agent_id")
-    signed_url = get_signed_url(agent_id) if agent_id else None
+    import streamlit.components.v1 as components
 
-    if signed_url:
-        st.markdown(
-            f"""
-            <div style="text-align: center; padding: 2rem;">
-                <div id="elevenlabs-widget" style="margin: 2rem auto; max-width: 400px;">
-                    <elevenlabs-convai agent-id="{agent_id}"></elevenlabs-convai>
-                </div>
-            </div>
-            <script src="https://elevenlabs.io/convai-widget/index.js" async></script>
-            """,
-            unsafe_allow_html=True,
-        )
-    else:
+    agent_id = scenario.get("elevenlabs_agent_id")
+    if not agent_id:
         st.warning("ElevenLabs agent not configured. Using mock mode.")
         _render_mock_call(scenario, checkpoints)
+        return
+
+    # ElevenLabs Convai widget — must use components.html() because
+    # st.markdown strips <script> tags
+    components.html(
+        f"""
+        <style>
+            body {{ margin: 0; background: transparent; display: flex;
+                   justify-content: center; align-items: center; min-height: 350px; }}
+        </style>
+        <elevenlabs-convai agent-id="{agent_id}"></elevenlabs-convai>
+        <script src="https://elevenlabs.io/convai-widget/index.js" async></script>
+        """,
+        height=400,
+    )
+
+    st.markdown("")
+    st.caption("Use the widget above to talk with the AI customer. When done, click End Call below.")
+
+    # End call button
+    st.markdown('<style>div[data-testid="stButton"] button[kind="primary"] { background-color: #ef4444 !important; border-color: #ef4444 !important; } div[data-testid="stButton"] button[kind="primary"]:hover { background-color: #dc2626 !important; border-color: #dc2626 !important; }</style>', unsafe_allow_html=True)
+    col_a, col_b, col_c = st.columns([1, 1, 1])
+    with col_b:
+        if st.button("End Call", use_container_width=True, type="primary", key="end_call_el"):
+            session_id = st.session_state.get("active_session_id")
+            start_time = st.session_state.get("call_start_time", datetime.now().isoformat())
+            duration = int((datetime.now() - datetime.fromisoformat(start_time)).total_seconds())
+
+            # For ElevenLabs calls, transcript comes from the widget/API
+            # For now, use a placeholder — real transcript retrieval requires conversation_id
+            transcript = "[ElevenLabs voice call — transcript retrieval pending]"
+            complete_session(session_id, transcript, duration)
+
+            st.session_state["view_session_id"] = session_id
+            st.session_state["page"] = "evaluating"
+            del st.session_state["active_session_id"]
+            del st.session_state["call_start_time"]
+            st.rerun()
 
 
 def _render_mock_call(scenario: dict, checkpoints: list[dict]):
